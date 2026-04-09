@@ -1,10 +1,11 @@
 tables:
-  countries:
+  country:
     description: >
-      Lookup table mapping ISO 3166-1 alpha-3 country codes to WHO country
-      names. Contains 195 countries and territories.
+      Lookup table mapping ISO 3166-1 alpha-3 country codes to country
+      names, World Bank region, and income group. Sourced from the World
+      Bank API.
     source:
-      parquet: countries.parquet
+      parquet: country.parquet
     columns:
       - name: iso3_code
         type: string
@@ -14,8 +15,42 @@ tables:
       - name: country_name
         type: string
         constraints: [required, unique]
-        description: Country or territory name as used by WHO.
+        description: Country or territory name as used by the World Bank.
         examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
+      - name: region
+        type: string
+        constraints: [required]
+        description: World Bank geographic region.
+        examples: [Sub-Saharan Africa, Latin America & Caribbean, East Asia & Pacific]
+      - name: income_group
+        type: string
+        constraints: [required]
+        description: World Bank income classification.
+        examples: [Low income, Lower middle income, Upper middle income, High income]
+
+  country_year:
+    description: >
+      Annual population and GDP by country, 2000–2023. Sourced from the
+      World Bank API (indicators SP.POP.TOTL and NY.GDP.MKTP.CD).
+    source:
+      parquet: country-year.parquet
+    columns:
+      - name: iso3_code
+        type: string
+        constraints: [required, foreign_key]
+        description: ISO 3166-1 alpha-3 country code.
+        examples: [AFG, DOM, LBN, PSE, ZWE]
+      - name: year
+        type: number(ordinal)
+        constraints: [required]
+        description: Year of observation.
+        range: [2000, 2023]
+      - name: population
+        type: number(quantity)
+        description: Total population.
+      - name: gdp_usd
+        type: number(quantity)
+        description: GDP in current US dollars.
 
   health_spending:
     description: >
@@ -145,15 +180,19 @@ tables:
 relationships:
   - description: Each health_spending row belongs to one country.
     cardinality: many-to-one
-    join: health_spending.iso3_code = countries.iso3_code
+    join: health_spending.iso3_code = country.iso3_code
 
   - description: Each financing_schemes row belongs to one country.
     cardinality: many-to-one
-    join: financing_schemes.iso3_code = countries.iso3_code
+    join: financing_schemes.iso3_code = country.iso3_code
 
   - description: Each spending_purpose row belongs to one country.
     cardinality: many-to-one
-    join: spending_purpose.iso3_code = countries.iso3_code
+    join: spending_purpose.iso3_code = country.iso3_code
+
+  - description: Each country_year row belongs to one country.
+    cardinality: many-to-one
+    join: country_year.iso3_code = country.iso3_code
 
 
 glossary:
