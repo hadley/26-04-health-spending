@@ -13,11 +13,23 @@ countries <- unique(rbind(
 countries <- countries[order(countries$country_name), ]
 write_parquet(countries, "countries.parquet")
 
-# Drop country_name from main tables
-health_spending$country_name <- NULL
-financing_schemes$country_name <- NULL
-spending_purpose$country_name <- NULL
+# Extract short codes from indicator_code and drop redundant columns
+extract_codes <- function(df) {
+  df$unit <- ifelse(grepl("_che$", df$indicator_code), "che", "usd2023")
+  df$indicator_code <- sub("_.*", "", df$indicator_code)
+  df$country_name <- NULL
+  df
+}
 
-write_parquet(financing_schemes, "financing_schemes.parquet")
+health_spending <- extract_codes(health_spending)
+names(health_spending)[names(health_spending) == "indicator_code"] <- "expenditure_type"
+
+financing_schemes <- extract_codes(financing_schemes)
+names(financing_schemes)[names(financing_schemes) == "indicator_code"] <- "financing_scheme"
+
+spending_purpose <- extract_codes(spending_purpose)
+names(spending_purpose)[names(spending_purpose) == "indicator_code"] <- "spending_purpose"
+
 write_parquet(health_spending, "health_spending.parquet")
+write_parquet(financing_schemes, "financing_schemes.parquet")
 write_parquet(spending_purpose, "spending_purpose.parquet")
