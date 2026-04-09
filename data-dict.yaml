@@ -155,21 +155,6 @@ relationships:
     cardinality: many-to-one
     join: spending_purpose.iso3_code = countries.iso3_code
 
-  - description: >
-      Each health_spending country-year has multiple financing scheme
-      breakdowns. Both tables cover the same 195 countries and years
-      (2000–2023).
-    cardinality: one-to-many
-    join: health_spending.iso3_code = financing_schemes.iso3_code AND health_spending.year = financing_schemes.year
-    conflicts: [usd2023, che]
-
-  - description: >
-      Each health_spending country-year has multiple spending purpose
-      breakdowns. spending_purpose covers fewer countries (142 vs 195) and
-      a shorter time range (2016–2023 vs 2000–2023).
-    cardinality: one-to-many
-    join: health_spending.iso3_code = spending_purpose.iso3_code AND health_spending.year = spending_purpose.year
-    conflicts: [usd2023, che]
 
 glossary:
   CHE: >
