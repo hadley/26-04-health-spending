@@ -1,0 +1,212 @@
+tables:
+  health_spending:
+    description: >
+      Aggregate health spending and its breakdown by funding source (domestic
+      government, domestic private, and external aid) for 195 countries and
+      territories. Each row is one country-indicator-year observation. Data
+      covers 2000–2023 from the WHO Global Health Expenditure Database (GHED).
+    source:
+      parquet: health_spending.parquet
+    columns:
+      - name: country_name
+        type: string
+        constraints: [required]
+        description: Country or territory name as used by WHO.
+        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
+      - name: iso3_code
+        type: string
+        constraints: [required]
+        description: ISO 3166-1 alpha-3 country code.
+        examples: [AFG, DOM, LBN, PSE, ZWE]
+      - name: year
+        type: number(ordinal)
+        constraints: [required]
+        description: Year of observation.
+        range: [2000, 2023]
+      - name: indicator_code
+        type: enum<che_usd2023, ext_che, ext_usd2023, gghed_che, gghed_usd2023, pvtd_che, pvtd_usd2023>
+        constraints: [required]
+        description: >
+          GHED indicator code. The suffix indicates the unit: `_che` = % of
+          current health expenditure, `_usd2023` = constant 2023 US$.
+
+          - `che` — Current health expenditure (total, only `_usd2023`).
+          - `gghed` — Domestic general government health expenditure (GGHE-D).
+          - `pvtd` — Domestic private health expenditure (PVT-D).
+          - `ext` — External health expenditure (EXT).
+      - name: expenditure_type
+        type: enum<Current Health Expenditure (CHE), Domestic General Government Health Expenditure (GGHE-D), Domestic Private Health Expenditure (PVT-D), External Health Expenditure (EXT)>
+        constraints: [required]
+        description: Human-readable label for the type of health expenditure.
+      - name: value
+        type: number(quantity)
+        constraints: [required]
+        description: >
+          Indicator value. The unit depends on indicator_code: either a
+          percentage of current health expenditure or constant 2023 US dollars.
+        examples: [0, 42.31, 16829582, 731279624, 4627736000000]
+      - name: unit
+        type: enum<% of current health expenditure, constant 2023 US$>
+        constraints: [required]
+        description: Unit of measurement for value.
+
+  financing_schemes:
+    description: >
+      Health spending broken down by financing scheme for 195 countries and
+      territories. Each row is one country-indicator-year observation. Data
+      covers 2000–2023 from the WHO Global Health Expenditure Database (GHED).
+    source:
+      parquet: financing_schemes.parquet
+    columns:
+      - name: country_name
+        type: string
+        constraints: [required]
+        description: Country or territory name as used by WHO.
+        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
+      - name: iso3_code
+        type: string
+        constraints: [required]
+        description: ISO 3166-1 alpha-3 country code.
+        examples: [AFG, DOM, LBN, PSE, ZWE]
+      - name: year
+        type: number(ordinal)
+        constraints: [required]
+        description: Year of observation.
+        range: [2000, 2023]
+      - name: indicator_code
+        type: enum<hf1_che, hf1_usd2023, hf2_che, hf2_usd2023, hf3_che, hf3_usd2023, hf4_che, hf4_usd2023, hfnec_che, hfnec_usd2023>
+        constraints: [required]
+        description: >
+          GHED indicator code. The suffix indicates the unit: `_che` = % of
+          current health expenditure, `_usd2023` = constant 2023 US$.
+
+          - `hf1` — Government schemes and compulsory contributory health care financing schemes.
+          - `hf2` — Voluntary health care payment schemes.
+          - `hf3` — Household out-of-pocket payments (OOPS).
+          - `hf4` — Rest of the world financing schemes (non-resident).
+          - `hfnec` — Unspecified financing schemes (n.e.c.).
+      - name: financing_scheme
+        type: enum<Government schemes and compulsory contributory health care financing schemes, Household out-of-pocket payments (OOPS), Rest of the world financing schemes (non-resident), Unspecified financing schemes (n.e.c.), Voluntary health care payment schemes>
+        constraints: [required]
+        description: Human-readable label for the financing scheme.
+      - name: value
+        type: number(quantity)
+        constraints: [required]
+        description: >
+          Indicator value. The unit depends on indicator_code: either a
+          percentage of current health expenditure or constant 2023 US dollars.
+        examples: [0, 18.57, 1225710, 98665928, 2693382000000]
+      - name: unit
+        type: enum<% of current health expenditure, constant 2023 US$>
+        constraints: [required]
+        description: Unit of measurement for value.
+
+  spending_purpose:
+    description: >
+      Health spending broken down by health care function (purpose) for 142
+      countries and territories. Each row is one country-indicator-year
+      observation. Data covers 2016–2023 from the WHO Global Health Expenditure
+      Database (GHED).
+    source:
+      parquet: spending_purpose.parquet
+    columns:
+      - name: country_name
+        type: string
+        constraints: [required]
+        description: Country or territory name as used by WHO.
+        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
+      - name: iso3_code
+        type: string
+        constraints: [required]
+        description: ISO 3166-1 alpha-3 country code.
+        examples: [AFG, DOM, LBN, PSE, ZWE]
+      - name: year
+        type: number(ordinal)
+        constraints: [required]
+        description: Year of observation.
+        range: [2016, 2023]
+      - name: indicator_code
+        type: enum<hc1_che, hc1_usd2023, hc2_che, hc2_usd2023, hc3_che, hc3_usd2023, hc4_che, hc4_usd2023, hc5_che, hc5_usd2023, hc6_che, hc6_usd2023, hc7_che, hc7_usd2023, hc9_che, hc9_usd2023>
+        constraints: [required]
+        description: >
+          GHED indicator code. The suffix indicates the unit: `_che` = % of
+          current health expenditure, `_usd2023` = constant 2023 US$.
+
+          - `hc1` — Curative care.
+          - `hc2` — Rehabilitative care.
+          - `hc3` — Long-term care (health).
+          - `hc4` — Ancillary services.
+          - `hc5` — Medical goods.
+          - `hc6` — Preventive care.
+          - `hc7` — Governance and health system administration.
+          - `hc9` — Other health care services (n.e.c.).
+      - name: spending_purpose
+        type: enum<Ancillary services (non-specified by function), Curative care, Governance, and health system and financing administration, Long-term care (health), Medical goods (non-specified by function), Other health care services not elsewhere classified (n.e.c.), Preventive care, Rehabilitative care>
+        constraints: [required]
+        description: Human-readable label for the health care function.
+      - name: value
+        type: number(quantity)
+        constraints: [required]
+        description: >
+          Indicator value. The unit depends on indicator_code: either a
+          percentage of current health expenditure or constant 2023 US dollars.
+        examples: [0, 2.89, 541823, 37779246, 1716955000000]
+      - name: unit
+        type: enum<% of current health expenditure, constant 2023 US$>
+        constraints: [required]
+        description: Unit of measurement for value.
+
+relationships:
+  - description: >
+      health_spending and financing_schemes share the same set of 195 countries
+      and years (2000–2023). Join on country and year to combine aggregate
+      spending with financing scheme breakdowns.
+    cardinality: one-to-many
+    join:
+      health_spending.country_name: financing_schemes.country_name
+      health_spending.year: financing_schemes.year
+    conflicts:
+      - indicator_code
+      - value
+      - unit
+
+  - description: >
+      health_spending and spending_purpose can be joined on country and year.
+      spending_purpose covers fewer countries (142 vs 195) and a shorter time
+      range (2016–2023 vs 2000–2023), so the join will drop unmatched rows.
+    cardinality: one-to-many
+    join:
+      health_spending.country_name: spending_purpose.country_name
+      health_spending.year: spending_purpose.year
+    conflicts:
+      - indicator_code
+      - value
+      - unit
+
+glossary:
+  CHE: >
+    Current Health Expenditure. The total spending on health care in a country,
+    including government, private, and external sources. Used as the denominator
+    when indicators are expressed as percentages.
+  GGHE-D: >
+    Domestic General Government Health Expenditure. Government spending on
+    health from domestic revenue sources (excludes external aid channelled
+    through government).
+  PVT-D: >
+    Domestic Private Health Expenditure. Private spending on health, including
+    voluntary insurance, out-of-pocket payments, and other private financing.
+  EXT: >
+    External Health Expenditure. Health spending from foreign sources such as
+    bilateral aid, multilateral organisations, and NGOs.
+  OOPS: >
+    Out-of-Pocket Spending. Direct payments by households for health services
+    at the point of use, not covered by insurance or government programmes.
+  GHED: >
+    Global Health Expenditure Database. The WHO database that is the source of
+    all data in these tables.
+  n.e.c.: >
+    Not elsewhere classified. A residual category for values that do not fit
+    into any of the defined categories.
+  constant 2023 US$: >
+    US dollars adjusted for inflation to 2023 price levels, allowing
+    comparison of monetary values across years.
