@@ -23,8 +23,8 @@ income_levels <- c("Low income", "Lower middle income", "Upper middle income", "
 countries <- countries_raw |>
   transmute(
     iso3_code = id,
-    country_name = name,
-    region = region$value,
+    country_name = trimws(name),
+    region = trimws(region$value),
     income_group = factor(incomeLevel$value, levels = income_levels)
   ) |>
   filter(region != "Aggregates") |>
