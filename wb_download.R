@@ -18,12 +18,14 @@ countries_raw <- wb_download(
   "wb_countries.json"
 )
 
+income_levels <- c("Low income", "Lower middle income", "Upper middle income", "High income")
+
 countries <- countries_raw |>
   transmute(
     iso3_code = id,
     country_name = name,
     region = region$value,
-    income_group = incomeLevel$value
+    income_group = factor(incomeLevel$value, levels = income_levels)
   ) |>
   filter(region != "Aggregates") |>
   arrange(iso3_code)
