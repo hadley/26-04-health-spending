@@ -21,7 +21,7 @@ tables:
     description: >
       Aggregate health spending and its breakdown by funding source (domestic
       government, domestic private, and external aid) for 195 countries and
-      territories. Each row is one country-expenditure type-unit-year
+      territories. Each row is one country-expenditure type-year
       observation. Data covers 2000–2023 from the WHO Global Health Expenditure
       Database (GHED).
     source:
@@ -46,24 +46,23 @@ tables:
           gghed: Domestic general government health expenditure (GGHE-D).
           pvtd: Domestic private health expenditure (PVT-D).
           ext: External health expenditure (EXT).
-      - name: value
+      - name: usd2023
         type: number(quantity)
         constraints: [required]
+        description: Spending in constant 2023 US dollars.
+        range: [0, 4627736000000]
+      - name: che
+        type: number(quantity)
         description: >
-          Indicator value in the unit specified by the unit column.
-        examples: [0, 42.31, 16829582, 731279624, 4627736000000]
-      - name: unit
-        type: enum
-        constraints: [required]
-        description: Unit of measurement for value.
-        values:
-          che: Percentage of current health expenditure.
-          usd2023: Constant 2023 US dollars.
+          Spending as a percentage of current health expenditure. NA for the
+          che expenditure type (total CHE cannot be expressed as a percentage
+          of itself).
+        range: [0, 99.88]
 
   financing_schemes:
     description: >
       Health spending broken down by financing scheme for 195 countries and
-      territories. Each row is one country-financing scheme-unit-year
+      territories. Each row is one country-financing scheme-year
       observation. Data covers 2000–2023 from the WHO Global Health Expenditure
       Database (GHED).
     source:
@@ -89,24 +88,21 @@ tables:
           hf3: Household out-of-pocket payments (OOPS).
           hf4: Rest of the world financing schemes (non-resident).
           hfnec: Unspecified financing schemes (n.e.c.).
-      - name: value
+      - name: usd2023
         type: number(quantity)
         constraints: [required]
-        description: >
-          Indicator value in the unit specified by the unit column.
-        examples: [0, 18.57, 1225710, 98665928, 2693382000000]
-      - name: unit
-        type: enum
+        description: Spending in constant 2023 US dollars.
+        range: [0, 3874635000000]
+      - name: che
+        type: number(quantity)
         constraints: [required]
-        description: Unit of measurement for value.
-        values:
-          che: Percentage of current health expenditure.
-          usd2023: Constant 2023 US dollars.
+        description: Spending as a percentage of current health expenditure.
+        range: [0, 99.90]
 
   spending_purpose:
     description: >
       Health spending broken down by health care function (purpose) for 142
-      countries and territories. Each row is one country-spending purpose-unit-year
+      countries and territories. Each row is one country-spending purpose-year
       observation. Data covers 2016–2023 from the WHO Global Health Expenditure
       Database (GHED).
     source:
@@ -135,19 +131,16 @@ tables:
           hc6: Preventive care.
           hc7: Governance and health system administration.
           hc9: Other health care services (n.e.c.).
-      - name: value
+      - name: usd2023
         type: number(quantity)
         constraints: [required]
-        description: >
-          Indicator value in the unit specified by the unit column.
-        examples: [0, 2.89, 541823, 37779246, 1716955000000]
-      - name: unit
-        type: enum
+        description: Spending in constant 2023 US dollars.
+        range: [0, 3092942000000]
+      - name: che
+        type: number(quantity)
         constraints: [required]
-        description: Unit of measurement for value.
-        values:
-          che: Percentage of current health expenditure.
-          usd2023: Constant 2023 US dollars.
+        description: Spending as a percentage of current health expenditure.
+        range: [0, 86.68]
 
 relationships:
   - description: Each health_spending row belongs to one country.
@@ -168,7 +161,7 @@ relationships:
       (2000–2023).
     cardinality: one-to-many
     join: health_spending.iso3_code = financing_schemes.iso3_code AND health_spending.year = financing_schemes.year
-    conflicts: [value, unit]
+    conflicts: [usd2023, che]
 
   - description: >
       Each health_spending country-year has multiple spending purpose
@@ -176,7 +169,7 @@ relationships:
       a shorter time range (2016–2023 vs 2000–2023).
     cardinality: one-to-many
     join: health_spending.iso3_code = spending_purpose.iso3_code AND health_spending.year = spending_purpose.year
-    conflicts: [value, unit]
+    conflicts: [usd2023, che]
 
 glossary:
   CHE: >

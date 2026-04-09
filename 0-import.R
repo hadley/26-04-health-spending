@@ -1,5 +1,6 @@
 library(nanoparquet)
 library(purrr)
+library(tidyr)
 
 financing_schemes <- read.csv("raw-data/financing_schemes.csv")
 health_spending <- read.csv("raw-data/health_spending.csv")
@@ -24,22 +25,21 @@ extract_codes <- function(df, label_col) {
   df
 }
 
-unit_levels <- c("che", "usd2023")
 
 health_spending <- extract_codes(health_spending, "expenditure_type")
 names(health_spending)[names(health_spending) == "indicator_code"] <- "expenditure_type"
 health_spending$expenditure_type <- factor(health_spending$expenditure_type, c("che", "gghed", "pvtd", "ext"))
-health_spending$unit <- factor(health_spending$unit, unit_levels)
+health_spending <- pivot_wider(health_spending, names_from = unit, values_from = value)
 
 financing_schemes <- extract_codes(financing_schemes, "financing_scheme")
 names(financing_schemes)[names(financing_schemes) == "indicator_code"] <- "financing_scheme"
 financing_schemes$financing_scheme <- factor(financing_schemes$financing_scheme, c("hf1", "hf2", "hf3", "hf4", "hfnec"))
-financing_schemes$unit <- factor(financing_schemes$unit, unit_levels)
+financing_schemes <- pivot_wider(financing_schemes, names_from = unit, values_from = value)
 
 spending_purpose <- extract_codes(spending_purpose, "spending_purpose")
 names(spending_purpose)[names(spending_purpose) == "indicator_code"] <- "spending_purpose"
 spending_purpose$spending_purpose <- factor(spending_purpose$spending_purpose, c("hc1", "hc2", "hc3", "hc4", "hc5", "hc6", "hc7", "hc9"))
-spending_purpose$unit <- factor(spending_purpose$unit, unit_levels)
+spending_purpose <- pivot_wider(spending_purpose, names_from = unit, values_from = value)
 
 write_parquet(health_spending, "health_spending.parquet")
 write_parquet(financing_schemes, "financing_schemes.parquet")
