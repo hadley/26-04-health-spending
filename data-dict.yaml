@@ -1,4 +1,22 @@
 tables:
+  countries:
+    description: >
+      Lookup table mapping ISO 3166-1 alpha-3 country codes to WHO country
+      names. Contains 195 countries and territories.
+    source:
+      parquet: countries.parquet
+    columns:
+      - name: iso3_code
+        type: string
+        constraints: [primary_key, required]
+        description: ISO 3166-1 alpha-3 country code.
+        examples: [AFG, DOM, LBN, PSE, ZWE]
+      - name: country_name
+        type: string
+        constraints: [required, unique]
+        description: Country or territory name as used by WHO.
+        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
+
   health_spending:
     description: >
       Aggregate health spending and its breakdown by funding source (domestic
@@ -8,14 +26,9 @@ tables:
     source:
       parquet: health_spending.parquet
     columns:
-      - name: country_name
-        type: string
-        constraints: [required]
-        description: Country or territory name as used by WHO.
-        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
       - name: iso3_code
         type: string
-        constraints: [required]
+        constraints: [required, foreign_key]
         description: ISO 3166-1 alpha-3 country code.
         examples: [AFG, DOM, LBN, PSE, ZWE]
       - name: year
@@ -58,14 +71,9 @@ tables:
     source:
       parquet: financing_schemes.parquet
     columns:
-      - name: country_name
-        type: string
-        constraints: [required]
-        description: Country or territory name as used by WHO.
-        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
       - name: iso3_code
         type: string
-        constraints: [required]
+        constraints: [required, foreign_key]
         description: ISO 3166-1 alpha-3 country code.
         examples: [AFG, DOM, LBN, PSE, ZWE]
       - name: year
@@ -110,14 +118,9 @@ tables:
     source:
       parquet: spending_purpose.parquet
     columns:
-      - name: country_name
-        type: string
-        constraints: [required]
-        description: Country or territory name as used by WHO.
-        examples: [Afghanistan, Dominica, Libya, Rwanda, Zimbabwe]
       - name: iso3_code
         type: string
-        constraints: [required]
+        constraints: [required, foreign_key]
         description: ISO 3166-1 alpha-3 country code.
         examples: [AFG, DOM, LBN, PSE, ZWE]
       - name: year
@@ -157,31 +160,33 @@ tables:
         description: Unit of measurement for value.
 
 relationships:
-  - description: >
-      health_spending and financing_schemes share the same set of 195 countries
-      and years (2000–2023). Join on country and year to combine aggregate
-      spending with financing scheme breakdowns.
-    cardinality: one-to-many
-    join:
-      health_spending.country_name: financing_schemes.country_name
-      health_spending.year: financing_schemes.year
-    conflicts:
-      - indicator_code
-      - value
-      - unit
+  - description: Each health_spending row belongs to one country.
+    cardinality: many-to-one
+    join: health_spending.iso3_code = countries.iso3_code
+
+  - description: Each financing_schemes row belongs to one country.
+    cardinality: many-to-one
+    join: financing_schemes.iso3_code = countries.iso3_code
+
+  - description: Each spending_purpose row belongs to one country.
+    cardinality: many-to-one
+    join: spending_purpose.iso3_code = countries.iso3_code
 
   - description: >
-      health_spending and spending_purpose can be joined on country and year.
-      spending_purpose covers fewer countries (142 vs 195) and a shorter time
-      range (2016–2023 vs 2000–2023), so the join will drop unmatched rows.
+      Each health_spending country-year has multiple financing scheme
+      breakdowns. Both tables cover the same 195 countries and years
+      (2000–2023).
     cardinality: one-to-many
-    join:
-      health_spending.country_name: spending_purpose.country_name
-      health_spending.year: spending_purpose.year
-    conflicts:
-      - indicator_code
-      - value
-      - unit
+    join: health_spending.iso3_code = financing_schemes.iso3_code AND health_spending.year = financing_schemes.year
+    conflicts: [indicator_code, value, unit]
+
+  - description: >
+      Each health_spending country-year has multiple spending purpose
+      breakdowns. spending_purpose covers fewer countries (142 vs 195) and
+      a shorter time range (2016–2023 vs 2000–2023).
+    cardinality: one-to-many
+    join: health_spending.iso3_code = spending_purpose.iso3_code AND health_spending.year = spending_purpose.year
+    conflicts: [indicator_code, value, unit]
 
 glossary:
   CHE: >
