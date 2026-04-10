@@ -20,7 +20,6 @@ health_spending <- read_parquet("health_spending.parquet")
 #| label: fig-gghed-targets
 #| fig-width: 10
 #| fig-height: 7
-
 gghed <- health_spending |>
   filter(expenditure_type == "gghed", year == 2023) |>
   left_join(country, by = "iso3_code") |>
@@ -37,16 +36,32 @@ ggplot(gghed, aes(usd_per_capita, pct_gdp, size = population)) +
   geom_hline(yintercept = 5, linetype = "dashed", colour = "grey60") +
   geom_point(
     data = \(d) filter(d, !is_africa),
-    colour = "grey75", alpha = 0.5
+    colour = "grey75",
+    alpha = 0.5
   ) +
   geom_point(
     data = \(d) filter(d, is_africa),
-    colour = "#4DBFCF", alpha = 0.7
+    colour = "#4DBFCF",
+    alpha = 0.7
   ) +
-  annotate("text", x = 95, y = 15.5, label = "$86 per person target \u2192",
-           hjust = 0, size = 3.5, colour = "grey40") +
-  annotate("text", x = 0.7, y = 5.3, label = "\u2191 5% of GDP target",
-           hjust = 0, size = 3.5, colour = "grey40") +
+  annotate(
+    "text",
+    x = 95,
+    y = 15.5,
+    label = "$86 per person target \u2192",
+    hjust = 0,
+    size = 3.5,
+    colour = "grey40"
+  ) +
+  annotate(
+    "text",
+    x = 0.7,
+    y = 5.3,
+    label = "\u2191 5% of GDP target",
+    hjust = 0,
+    size = 3.5,
+    colour = "grey40"
+  ) +
   scale_x_log10(labels = scales::label_dollar()) +
   scale_y_continuous(labels = scales::label_percent(scale = 1)) +
   scale_size_area(max_size = 20, guide = "none") +

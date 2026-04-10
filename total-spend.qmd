@@ -15,7 +15,7 @@ health_spending <- read_parquet("health_spending.parquet")
 
 spending <- health_spending |>
   filter(expenditure_type == "che") |>
-  select(-che) |> 
+  select(-che) |>
   left_join(country, by = "iso3_code") |>
   left_join(country_year, by = c("iso3_code", "year"))
 ```
@@ -28,15 +28,20 @@ Inspired by <https://data.one.org/analysis/turning-point-in-health-financing>
 #| label: fig-global-total
 #| fig-width: 10
 #| fig-height: 4
-
-global <- spending |> 
+global <- spending |>
   summarise(usd2023 = sum(usd2023), .by = c(year))
 
 ggplot(global, aes(year, usd2023)) +
   geom_line() +
-  scale_y_continuous(labels = scales::label_dollar(scale = 1e-12, suffix = "T")) +
-  labs(x = NULL, y = "Spending (2023 USD)", fill = NULL,
-       title = "Global health spending by funding source") +
+  scale_y_continuous(
+    labels = scales::label_dollar(scale = 1e-12, suffix = "T")
+  ) +
+  labs(
+    x = NULL,
+    y = "Spending (2023 USD)",
+    fill = NULL,
+    title = "Global health spending by funding source"
+  ) +
   theme(legend.position = "bottom")
 ```
 
@@ -46,7 +51,6 @@ ggplot(global, aes(year, usd2023)) +
 #| label: fig-by-income
 #| fig-width: 10
 #| fig-height: 6
-
 by_income <- spending |>
   filter(!is.na(income_group)) |>
   summarise(usd2023 = sum(usd2023), .by = c(year, income_group))
@@ -54,9 +58,15 @@ by_income <- spending |>
 ggplot(by_income, aes(year, usd2023)) +
   geom_line() +
   facet_wrap(~income_group, ncol = 2, scales = "free_y") +
-  scale_y_continuous(labels = scales::label_dollar(scale = 1e-9, suffix = "B", accuracy = 1)) +
-  labs(x = NULL, y = "Spending (2023 USD)", fill = NULL,
-       title = "Health spending by funding source and income group") +
+  scale_y_continuous(
+    labels = scales::label_dollar(scale = 1e-9, suffix = "B", accuracy = 1)
+  ) +
+  labs(
+    x = NULL,
+    y = "Spending (2023 USD)",
+    fill = NULL,
+    title = "Health spending by funding source and income group"
+  ) +
   theme(legend.position = "bottom")
 ```
 
@@ -66,16 +76,21 @@ ggplot(by_income, aes(year, usd2023)) +
 #| label: fig-by-region
 #| fig-width: 10
 #| fig-height: 6
-
 by_region <- spending |>
   summarise(usd2023 = sum(usd2023), .by = c(year, region))
 
 ggplot(by_region, aes(year, usd2023, colour = region)) +
   geom_line(linewidth = 0.8) +
-  scale_y_continuous(labels = scales::label_dollar(scale = 1e-9, suffix = "B")) +
+  scale_y_continuous(
+    labels = scales::label_dollar(scale = 1e-9, suffix = "B")
+  ) +
   scale_colour_brewer(palette = "Dark2") +
-  labs(x = NULL, y = "Spending (2023 USD)", colour = NULL,
-       title = "Total health spending by region") +
+  labs(
+    x = NULL,
+    y = "Spending (2023 USD)",
+    colour = NULL,
+    title = "Total health spending by region"
+  ) +
   theme(legend.position = "bottom")
 ```
 
@@ -85,7 +100,6 @@ ggplot(by_region, aes(year, usd2023, colour = region)) +
 #| label: fig-per-capita-income
 #| fig-width: 10
 #| fig-height: 5
-
 pc <- spending |>
   summarise(
     usd2023 = sum(usd2023),
@@ -98,8 +112,12 @@ ggplot(pc, aes(year, usd_per_capita, colour = income_group)) +
   geom_line(linewidth = 0.8) +
   scale_y_continuous(labels = scales::label_dollar()) +
   scale_colour_brewer(palette = "Set2") +
-  labs(x = NULL, y = "Health spending per capita (2023 USD)", colour = NULL,
-       title = "Per capita health spending by income group") +
+  labs(
+    x = NULL,
+    y = "Health spending per capita (2023 USD)",
+    colour = NULL,
+    title = "Per capita health spending by income group"
+  ) +
   theme(legend.position = "bottom")
 ```
 
@@ -107,7 +125,6 @@ ggplot(pc, aes(year, usd_per_capita, colour = income_group)) +
 #| label: fig-per-capita-region
 #| fig-width: 10
 #| fig-height: 5
-
 pc_region <- spending |>
   summarise(
     usd2023 = sum(usd2023),
@@ -120,7 +137,11 @@ ggplot(pc_region, aes(year, usd_per_capita, colour = region)) +
   geom_line(linewidth = 0.8) +
   scale_y_continuous(labels = scales::label_dollar()) +
   scale_colour_brewer(palette = "Dark2") +
-  labs(x = NULL, y = "Health spending per capita (2023 USD)", colour = NULL,
-       title = "Per capita health spending by region") +
+  labs(
+    x = NULL,
+    y = "Health spending per capita (2023 USD)",
+    colour = NULL,
+    title = "Per capita health spending by region"
+  ) +
   theme(legend.position = "bottom")
 ```

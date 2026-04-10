@@ -1,3 +1,4 @@
 wb/*.json
 *_files
 *.html
+.panache-cache/cli-cache-v1.bin

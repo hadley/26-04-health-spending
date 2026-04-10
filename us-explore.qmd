@@ -10,9 +10,12 @@ library(tidyverse)
 library(nanoparquet)
 library(patchwork)
 
-health_spending <- read_parquet("health_spending.parquet") |> filter(iso3_code == "USA")
-financing_schemes <- read_parquet("financing_schemes.parquet") |> filter(iso3_code == "USA")
-spending_purpose <- read_parquet("spending_purpose.parquet") |> filter(iso3_code == "USA")
+health_spending <- read_parquet("health_spending.parquet") |>
+  filter(iso3_code == "USA")
+financing_schemes <- read_parquet("financing_schemes.parquet") |>
+  filter(iso3_code == "USA")
+spending_purpose <- read_parquet("spending_purpose.parquet") |>
+  filter(iso3_code == "USA")
 ```
 
 ## Health spending by funding source
@@ -21,7 +24,6 @@ spending_purpose <- read_parquet("spending_purpose.parquet") |> filter(iso3_code
 #| label: fig-health-spending
 #| fig-width: 10
 #| fig-height: 4
-
 hs_labels <- c(
   gghed = "Government",
   pvtd = "Private",
@@ -34,7 +36,9 @@ p1 <- hs |>
   ggplot(aes(year, usd2023, fill = expenditure_type)) +
   geom_area() +
   scale_fill_brewer(palette = "Set2", labels = hs_labels) +
-  scale_y_continuous(labels = scales::label_dollar(scale = 1e-9, suffix = "B")) +
+  scale_y_continuous(
+    labels = scales::label_dollar(scale = 1e-9, suffix = "B")
+  ) +
   labs(x = NULL, y = "Spending (2023 USD)", fill = NULL)
 
 p2 <- hs |>
@@ -53,7 +57,6 @@ p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 #| label: fig-financing-schemes
 #| fig-width: 10
 #| fig-height: 4
-
 fs_labels <- c(
   hf1 = "Govt/compulsory",
   hf2 = "Voluntary",
@@ -66,7 +69,9 @@ p1 <- financing_schemes |>
   ggplot(aes(year, usd2023, fill = financing_scheme)) +
   geom_area() +
   scale_fill_brewer(palette = "Set2", labels = fs_labels) +
-  scale_y_continuous(labels = scales::label_dollar(scale = 1e-9, suffix = "B")) +
+  scale_y_continuous(
+    labels = scales::label_dollar(scale = 1e-9, suffix = "B")
+  ) +
   labs(x = NULL, y = "Spending (2023 USD)", fill = NULL)
 
 p2 <- financing_schemes |>
@@ -85,7 +90,6 @@ p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 #| label: fig-spending-purpose
 #| fig-width: 10
 #| fig-height: 4
-
 sp_labels <- c(
   hc1 = "Curative",
   hc2 = "Rehabilitative",
@@ -101,7 +105,9 @@ p1 <- spending_purpose |>
   ggplot(aes(year, usd2023, fill = spending_purpose)) +
   geom_area() +
   scale_fill_brewer(palette = "Set2", labels = sp_labels) +
-  scale_y_continuous(labels = scales::label_dollar(scale = 1e-9, suffix = "B")) +
+  scale_y_continuous(
+    labels = scales::label_dollar(scale = 1e-9, suffix = "B")
+  ) +
   labs(x = NULL, y = "Spending (2023 USD)", fill = NULL)
 
 p2 <- spending_purpose |>
