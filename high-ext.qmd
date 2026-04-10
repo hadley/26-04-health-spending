@@ -1,0 +1,174 @@
+---
+title: Countries with High External Health Funding
+format: html
+---
+
+```{r}
+#| label: setup
+#| message: false
+library(tidyverse)
+library(nanoparquet)
+
+country <- read_parquet("country.parquet")
+country_year <- read_parquet("country-year.parquet")
+health_spending <- read_parquet("health_spending.parquet")
+```
+
+## Which countries rely most on external funding?
+
+```{r}
+#| label: top-ext-countries
+
+ext <- health_spending |>
+  filter(expenditure_type == "ext") |>
+  left_join(country, by = "iso3_code")
+
+# Average external share of CHE over the most recent 5 years
+ext_recent <- ext |>
+  filter(year >= 2019) |>
+  summarise(mean_che = mean(che, na.rm = TRUE), .by = c(iso3_code, country_name)) |>
+  arrange(desc(mean_che))
+
+ext_recent |> head(20)
+```
+
+The countries with the highest external health funding share have several things
+in common:
+
+- **Sub-Saharan Africa dominates.** The majority are African countries, reflecting
+  the continent's heavy reliance on development aid for health systems.
+- **Small island developing states (SIDS).** A second cluster is tiny Pacific
+  and Caribbean island nations (Micronesia, Marshall Islands, Niue, Tonga,
+  Vanuatu, etc.). Their small populations mean even modest aid translates to a
+  huge share of total health spending.
+- **Fragile and conflict-affected states.** Several are current or recent conflict
+  zones (South Sudan, Somalia, Haiti, CAR, DRC, Burundi), where weak domestic
+  revenue means external donors fill the gap.
+- **Very small total health budgets.** Almost all have total health spending
+  under $1--2B. The exceptions (Ethiopia, Tanzania, DRC, Uganda) have very large
+  populations, so per-capita spending is still extremely low.
+
+Focus on the top 20 countries by average external share (2019–2023).
+
+```{r}
+#| label: top-countries
+top20 <- ext_recent |> slice_head(n = 20)
+```
+
+## External funding share over time
+
+```{r}
+#| label: fig-ext-share-over-time
+#| fig-width: 10
+#| fig-height: 8
+
+ext |>
+  semi_join(top20, by = "iso3_code") |>
+  mutate(country_name = fct_reorder(country_name, -che, .fun = mean, na.rm = TRUE)) |>
+  ggplot(aes(year, che)) +
+  geom_line() +
+  facet_wrap(~country_name, ncol = 4) +
+  scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+  labs(x = NULL, y = "External funding (% of CHE)",
+       title = "External health funding share, top 20 countries")
+```
+
+## External funding in absolute terms
+
+```{r}
+#| label: fig-ext-absolute
+#| fig-width: 10
+#| fig-height: 8
+
+ext |>
+  semi_join(top20, by = "iso3_code") |>
+  mutate(country_name = fct_reorder(country_name, -usd2023, .fun = mean, na.rm = TRUE)) |>
+  ggplot(aes(year, usd2023)) +
+  geom_line() +
+  facet_wrap(~country_name, ncol = 4, scales = "free_y") +
+  scale_y_continuous(labels = scales::label_dollar(scale = 1e-6, suffix = "M")) +
+  labs(x = NULL, y = "External funding (2023 USD)",
+       title = "External health funding, top 20 countries")
+```
+
+## Per capita health spending
+
+```{r}
+#| label: fig-per-capita
+#| fig-width: 10
+#| fig-height: 8
+
+che_pc <- health_spending |>
+  filter(expenditure_type == "che") |>
+  left_join(country_year, by = c("iso3_code", "year")) |>
+  mutate(usd_per_capita = usd2023 / population) |>
+  semi_join(top20, by = "iso3_code") |>
+  left_join(country, by = "iso3_code") |>
+  mutate(country_name = fct_reorder(country_name, -usd_per_capita, .fun = mean, na.rm = TRUE))
+
+ggplot(che_pc, aes(year, usd_per_capita)) +
+  geom_line() +
+  facet_wrap(~country_name, ncol = 4, scales = "free_y") +
+  scale_y_continuous(labels = scales::label_dollar()) +
+  labs(x = NULL, y = "Health spending per capita (2023 USD)",
+       title = "Per capita health expenditure, top 20 externally funded countries")
+```
+
+## How does external funding relate to total spending?
+
+```{r}
+#| label: fig-ext-vs-che
+#| fig-width: 10
+#| fig-height: 6
+
+che <- health_spending |>
+  filter(expenditure_type == "che", year >= 2019) |>
+  summarise(mean_che_usd = mean(usd2023), .by = iso3_code)
+
+ext_vs_che <- ext_recent |>
+  left_join(che, by = "iso3_code")
+
+ggplot(ext_vs_che, aes(mean_che_usd, mean_che)) +
+  geom_point(alpha = 0.5) +
+  ggrepel::geom_text_repel(
+    data = ext_vs_che |> filter(mean_che > 30),
+    aes(label = country_name),
+    size = 3
+  ) +
+  scale_x_log10(labels = scales::label_dollar(scale = 1e-6, suffix = "M")) +
+  scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+  labs(
+    x = "Total health expenditure (2023 USD, log scale)",
+    y = "External funding (% of CHE)",
+    title = "External funding share vs total health spending (2019–2023 avg)"
+  )
+```
+
+## Funding source breakdown for high-external countries
+
+```{r}
+#| label: fig-funding-breakdown
+#| fig-width: 10
+#| fig-height: 8
+
+hs_labels <- c(
+  gghed = "Government",
+  pvtd = "Private",
+  ext = "External"
+)
+
+health_spending |>
+  filter(expenditure_type != "che") |>
+  semi_join(top20, by = "iso3_code") |>
+  left_join(country, by = "iso3_code") |>
+  mutate(country_name = fct_reorder(country_name, -che * (expenditure_type == "ext"),
+                                     .fun = mean, na.rm = TRUE)) |>
+  ggplot(aes(year, che, fill = expenditure_type)) +
+  geom_area() +
+  facet_wrap(~country_name, ncol = 4) +
+  scale_fill_brewer(palette = "Set2", labels = hs_labels) +
+  scale_y_continuous(labels = scales::label_percent(scale = 1)) +
+  labs(x = NULL, y = "% of CHE", fill = NULL,
+       title = "Health funding sources, top 20 externally funded countries") +
+  theme(legend.position = "bottom")
+```
